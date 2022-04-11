@@ -65,8 +65,25 @@ if [ -n "$RELATIVE_URL_ROOT" ]; then
 	sed -i 's|_RELATIVE_URL_ROOT_|'$RELATIVE_URL_ROOT'|' /etc/nginx/sites-enabled/default
 fi
 
+# Sleep time to start user process
+if [ -z "$SLEEP_TIME" ]; then
+  SLEEP_TIME="10"
+else
+
+
+if [ -z "$DISPLAY" ]; then
+  export DISPLAY=":1"
+fi
+
+
 # clearup
 PASSWORD=
 HTTP_PASSWORD=
 
-exec /bin/tini -- /usr/bin/supervisord -n -c /etc/supervisor/supervisord.conf
+if [ "$@" ]; then
+  /bin/tini -- supervisord -n -c /etc/supervisor/supervisord.conf &
+  sleep $SLEEP_TIME
+  exec $@
+else
+  exec /bin/tini -- supervisord -n -c /etc/supervisor/supervisord.conf
+fi
